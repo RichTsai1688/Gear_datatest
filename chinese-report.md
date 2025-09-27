@@ -38,11 +38,22 @@
 - Skewness 值改變，壞品震動分布的非對稱性明顯不同。
 
 ## 四、模型架構與訓練策略
-### 4.1 模型設定
-- 網路結構：Dense(512) → Dense(256) → Dense(128) → Sigmoid，層間搭配 ReLU、Batch Normalization 與 Dropout(0.2)。
-- 正規化：L2=1e-4；ReduceLROnPlateau (factor=0.5, patience=15)；EarlyStopping (patience=30)。
-- 類別權重：good 2.145、bad 0.652，解決資料不平衡問題。
-- 標準化：以訓練集均值/標準差進行 z-score，並套用至驗證與測試集。
+### 4.1 模型設定與數學描述
+- **網路架構**：輸入層為 39 維特徵，經 Dense(512) → Dense(256) → Dense(128) → Dense(1)；前三層使用 ReLU、Batch Normalization、Dropout(0.2)，輸出層為 Sigmoid。
+- **輸出函數**：對於樣本特徵向量 \(\mathbf{x}\)，最後一層輸出 \( p = \sigma(\mathbf{w}^T \mathbf{h} + b) = 1 / (1 + e^{-z}) \)，視為壞品的機率估計。
+- **決策閾值**：輸出 \(p\) 需經由閾值 \(\tau\) 轉成預測類別 \(\hat{y}\)：
+  \[
+  \hat{y} = \begin{cases}1, & p \ge \tau \\ 0, & p < \tau\end{cases}
+  \]
+- **閾值搜尋**：`find_best_threshold` 以 0.05–0.95 等間距掃描候選閾值 \(\{\tau_i\}\)，計算 validation accuracy：
+  \[
+  \text{Accuracy}(\tau_i) = \frac{\text{TP}(\tau_i) + \text{TN}(\tau_i)}{\text{TP}(\tau_i) + \text{TN}(\tau_i) + \text{FP}(\tau_i) + \text{FN}(\tau_i)}
+  \]
+  取最大值對應的 \(\tau^*\) 作為推薦閾值；本研究得到 \(\tau^* = 0.16\)。
+- **指標定義**：Precision = TP/(TP+FP)、Recall = TP/(TP+FN)、Specificity = TN/(TN+FP)、F1 = 2PR/(P+R)。
+- **正規化策略**：L2=1e-4，搭配 ReduceLROnPlateau (factor=0.5, patience=15) 與 EarlyStopping (patience=30)。
+- **類別權重**：依公式 \( w_c = \frac{N}{K N_c} \) 計算，good=2.145、bad=0.652。
+- **資料標準化**：對訓練集特徵作 z-score，再套用到 val / test。
 
 ### 4.2 訓練指令
 ```bash
@@ -56,7 +67,7 @@ python train_feature_network.py \
 訓練後將最佳權重儲存於 `checkpoints/feature_mlp_best.weights.h5`，並生成報告 `reports/feature_mlp_report.json`。
 
 ### 4.3 閾值調校
-透過驗證集搜尋閾值 0.05–0.95，選擇使 accuracy 最大者。最佳閾值為 **0.16**，對應的驗證測試結果同時寫入報告與 Viewer summary。
+透過上述閾值搜尋，於驗證集取得最佳 \(\tau^* = 0.16\)，對應結果同步寫入 `reports/feature_mlp_report.json` 與 Viewer summary。
 
 ## 五、實驗結果
 | Split      | TN | TP | FP | FN | Accuracy | Precision | Recall | Specificity | F1   |
@@ -80,4 +91,3 @@ python train_feature_network.py \
 3. 納入額外特徵（如小波或包絡分析），並同步更新 `build_feature_dataset.py` 與本文檔案。
 
 透過本報告與附帶的 `README.md`、`feature-method.md`、`finalize-report.md`，即能完整重現資料處理、模型訓練與檢視流程。
-
