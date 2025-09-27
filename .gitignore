@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.npz
+*.zip
+checkpoints/
+reports/*.json
+datasets/
+gear_raw_data/
+temp/
+node_modules/
+viewer/node_modules/
+.DS_Store

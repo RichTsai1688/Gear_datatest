@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gear Report Viewer</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Gear Classification Reports</h1>
+      <p>Select a report to inspect metrics and confusion matrices.</p>
+    </header>
+
+    <main>
+      <section class="sidebar">
+        <h2>Reports</h2>
+        <ul id="report-list"></ul>
+      </section>
+      <section class="content">
+        <div id="model-summary" class="card hidden">
+          <h2>Model Summary</h2>
+          <div id="model-summary-content"></div>
+        </div>
+        <div id="report-meta" class="card hidden"></div>
+        <div id="report-details" class="card hidden"></div>
+        <div id="dataset-viewer" class="card">
+          <h2>Dataset Explorer</h2>
+          <div class="controls">
+            <label>
+              Dataset
+              <select id="dataset-select"></select>
+            </label>
+            <label>
+              Sample Index
+              <input type="number" id="sample-index" min="0" value="0" />
+            </label>
+            <button id="load-sample">Load Sample</button>
+          </div>
+          <div id="sample-summary"></div>
+          <div id="dataset-summary" class="metrics-section hidden">
+            <h3>Dataset Summary</h3>
+            <div id="dataset-summary-content" class="metrics-grid"></div>
+          </div>
+          <div id="sample-statistics" class="metrics-section hidden">
+            <h3>Sample Statistics</h3>
+            <div id="sample-statistics-content" class="metrics-grid"></div>
+          </div>
+          <div class="chart-container">
+            <canvas id="time-chart"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="freq-chart"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="metric-row">
+      <tr>
+        <th></th>
+        <td></td>
+      </tr>
+    </template>
+
+    <template id="matrix-row">
+      <tr>
+        <th></th>
+        <td></td>
+      </tr>
+    </template>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
